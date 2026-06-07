@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from manifest
+        id: version
+        run: echo "tag=v$(jq -r .version manifest.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag exists
+        id: tag_exists
+        run: |
+          if git ls-remote --tags origin "${{ steps.version.outputs.tag }}" 2>/dev/null | grep -q .; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create release zip
+        if: steps.tag_exists.outputs.exists == 'false'
+        run: |
+          zip -r tissues.zip . -x '.git/*' '.github/*' 'generate-icons.py' '.gitignore'
+
+      - name: Create Release
+        if: steps.tag_exists.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Tissues ${{ steps.version.outputs.tag }}
+          body: |
+            See [manifest.json](./manifest.json) for details.
+          files: tissues.zip
+          generate_release_notes: true
