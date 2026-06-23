@@ -70,10 +70,22 @@ jobs:
             tissues-chrome.zip
             tissues-firefox.zip
 
-      - name: Update existing release notes
+      - name: Check if release notes changed
         if: steps.tag_exists.outputs.exists == 'true' && steps.release_notes.outputs.has_notes == 'true'
+        id: notes_changed
+        run: |
+          # Check if the release notes file changed in this push
+          CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -c ".release/latest/${{ steps.version.outputs.tag }}.md" || true)
+          if [ "$CHANGED" -gt 0 ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update existing release notes
+        if: steps.notes_changed.outputs.changed == 'true'
         run: |
           gh release edit "${{ steps.version.outputs.tag }}" \
-            --body "$(cat .release/latest/${{ steps.version.outputs.tag }}.md)"
+            --notes-file ".release/latest/${{ steps.version.outputs.tag }}.md"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
