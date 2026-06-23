@@ -3,6 +3,8 @@ name: Release
 on:
   push:
     branches: [main]
+    paths:
+      - manifest.json
 
 permissions:
   contents: write
@@ -26,6 +28,14 @@ jobs:
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Create tag
+        if: steps.tag_exists.outputs.exists == 'false'
+        run: |
+          git tag "${{ steps.version.outputs.tag }}"
+          git push origin "${{ steps.version.outputs.tag }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Chrome release zip
         if: steps.tag_exists.outputs.exists == 'false'
         run: |
@@ -35,7 +45,7 @@ jobs:
         if: steps.tag_exists.outputs.exists == 'false'
         run: |
           # Add Firefox browser_specific_settings to a temp manifest
-          jq '. + {"browser_specific_settings":{"gecko":{"id":"tissues@kio.dev","strict_min_version":"109.0"}}}' \
+          jq '. + {"browser_specific_settings":{"gecko":{"id":"tissues@castled.codes","strict_min_version":"109.0"}}}' \
             manifest.json > /tmp/manifest-firefox.json
           # Build zip with the Firefox manifest swapped in
           cp manifest.json /tmp/manifest-chrome.json
