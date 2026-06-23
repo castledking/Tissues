@@ -18,7 +18,13 @@ function render(states) {
   entries.sort((a, b) => Number(a[0]) - Number(b[0]));
   entries.forEach(([num, state]) => {
     const li = document.createElement('li');
-    li.innerHTML = `<span>#${num}</span><span class="state">${LABELS[state] || state}</span>`;
+    const numSpan = document.createElement('span');
+    numSpan.textContent = `#${num}`;
+    const stateSpan = document.createElement('span');
+    stateSpan.className = 'state';
+    stateSpan.textContent = LABELS[state] || state;
+    li.appendChild(numSpan);
+    li.appendChild(stateSpan);
     list.appendChild(li);
   });
 }

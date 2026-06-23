@@ -47,7 +47,7 @@ jobs:
       - name: Create Firefox release zip
         if: steps.tag_exists.outputs.exists == 'false'
         run: |
-          jq '. + {"browser_specific_settings":{"gecko":{"id":"tissues@castled.codes","strict_min_version":"109.0"}}}' \
+          jq '. + {"browser_specific_settings":{"gecko":{"id":"tissues@castled.codes","strict_min_version":"109.0","data_collection_permissions":[]}}}' \
             manifest.json > /tmp/manifest-firefox.json
           cp manifest.json /tmp/manifest-chrome.json
           cp /tmp/manifest-firefox.json manifest.json
@@ -108,7 +108,7 @@ jobs:
 
       - name: Create Firefox release zip
         run: |
-          jq '. + {"browser_specific_settings":{"gecko":{"id":"tissues@castled.codes","strict_min_version":"109.0"}}}' \
+          jq '. + {"browser_specific_settings":{"gecko":{"id":"tissues@castled.codes","strict_min_version":"109.0","data_collection_permissions":[]}}}' \
             manifest.json > /tmp/manifest-firefox.json
           cp manifest.json /tmp/manifest-chrome.json
           cp /tmp/manifest-firefox.json manifest.json
