@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="Tissues" width="100%" height="auto" src="https://castled.codes/assets/tissues-banner.png">
+  <img alt="Tissues" width="100%" height="auto" src="https://castled.codes/assets/tissues-banner.png?v=2">
 </p>
 
 <p align="center">
