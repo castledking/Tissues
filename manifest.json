@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Tissues",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Track upstream issue status on GitHub.",
   "permissions": ["storage"],
   "content_scripts": [
