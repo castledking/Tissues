@@ -44,11 +44,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create Chrome release zip
-        if: steps.tag_exists.outputs.exists == 'false'
-        run: |
-          zip -r tissues-chrome.zip . -x '.git/*' '.github/*' 'generate-icons.py' '.gitignore'
-
       - name: Create Firefox release zip
         if: steps.tag_exists.outputs.exists == 'false'
         run: |
@@ -58,6 +53,11 @@ jobs:
           cp /tmp/manifest-firefox.json manifest.json
           zip -r tissues-firefox.zip . -x '.git/*' '.github/*' 'generate-icons.py' '.gitignore'
           cp /tmp/manifest-chrome.json manifest.json
+
+      - name: Create Chrome release zip
+        if: steps.tag_exists.outputs.exists == 'false'
+        run: |
+          zip -r tissues-chrome.zip . -x '.git/*' '.github/*' 'generate-icons.py' '.gitignore'
 
       - name: Read release notes
         id: release_notes
@@ -106,10 +106,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create Chrome release zip
-        run: |
-          zip -r tissues-chrome.zip . -x '.git/*' '.github/*' 'generate-icons.py' '.gitignore'
-
       - name: Create Firefox release zip
         run: |
           jq '. + {"browser_specific_settings":{"gecko":{"id":"tissues@castled.codes","strict_min_version":"109.0"}}}' \
@@ -118,6 +114,10 @@ jobs:
           cp /tmp/manifest-firefox.json manifest.json
           zip -r tissues-firefox.zip . -x '.git/*' '.github/*' 'generate-icons.py' '.gitignore'
           cp /tmp/manifest-chrome.json manifest.json
+
+      - name: Create Chrome release zip
+        run: |
+          zip -r tissues-chrome.zip . -x '.git/*' '.github/*' 'generate-icons.py' '.gitignore'
 
       - name: Read release notes
         id: release_notes
