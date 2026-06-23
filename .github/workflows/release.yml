@@ -44,17 +44,36 @@ jobs:
           # Restore original Chrome manifest
           cp /tmp/manifest-chrome.json manifest.json
 
+      - name: Read release notes
+        id: release_notes
+        run: |
+          NOTES_FILE=".release/latest/${{ steps.version.outputs.tag }}.md"
+          if [ -f "$NOTES_FILE" ]; then
+            CONTENT=$(cat "$NOTES_FILE")
+            echo "body<<EOF" >> "$GITHUB_OUTPUT"
+            echo "$CONTENT" >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+            echo "has_notes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "body=Release ${{ steps.version.outputs.tag }}" >> "$GITHUB_OUTPUT"
+            echo "has_notes=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create Release
         if: steps.tag_exists.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: Tissues ${{ steps.version.outputs.tag }}
-          body: |
-            ## Downloads
-            - **tissues-chrome.zip** — for Chrome / Chromium-based browsers
-            - **tissues-firefox.zip** — for Firefox (includes `browser_specific_settings`)
+          body: ${{ steps.release_notes.outputs.body }}
           files: |
             tissues-chrome.zip
             tissues-firefox.zip
-          generate_release_notes: true
+
+      - name: Update existing release notes
+        if: steps.tag_exists.outputs.exists == 'true' && steps.release_notes.outputs.has_notes == 'true'
+        run: |
+          gh release edit "${{ steps.version.outputs.tag }}" \
+            --body "$(cat .release/latest/${{ steps.version.outputs.tag }}.md)"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
