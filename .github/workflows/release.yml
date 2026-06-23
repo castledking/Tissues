@@ -5,12 +5,20 @@ on:
     branches: [main]
     paths:
       - manifest.json
+      - .release/latest/*.md
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to re-release (e.g. v1.0.2)'
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 jobs:
   release:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -44,14 +52,11 @@ jobs:
       - name: Create Firefox release zip
         if: steps.tag_exists.outputs.exists == 'false'
         run: |
-          # Add Firefox browser_specific_settings to a temp manifest
           jq '. + {"browser_specific_settings":{"gecko":{"id":"tissues@castled.codes","strict_min_version":"109.0"}}}' \
             manifest.json > /tmp/manifest-firefox.json
-          # Build zip with the Firefox manifest swapped in
           cp manifest.json /tmp/manifest-chrome.json
           cp /tmp/manifest-firefox.json manifest.json
           zip -r tissues-firefox.zip . -x '.git/*' '.github/*' 'generate-icons.py' '.gitignore'
-          # Restore original Chrome manifest
           cp /tmp/manifest-chrome.json manifest.json
 
       - name: Read release notes
@@ -87,3 +92,53 @@ jobs:
             --notes-file ".release/latest/${{ steps.version.outputs.tag }}.md"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  rerelease:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Delete old release assets
+        run: |
+          gh release delete-asset "${{ inputs.version }}" tissues-chrome.zip || true
+          gh release delete-asset "${{ inputs.version }}" tissues-firefox.zip || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Chrome release zip
+        run: |
+          zip -r tissues-chrome.zip . -x '.git/*' '.github/*' 'generate-icons.py' '.gitignore'
+
+      - name: Create Firefox release zip
+        run: |
+          jq '. + {"browser_specific_settings":{"gecko":{"id":"tissues@castled.codes","strict_min_version":"109.0"}}}' \
+            manifest.json > /tmp/manifest-firefox.json
+          cp manifest.json /tmp/manifest-chrome.json
+          cp /tmp/manifest-firefox.json manifest.json
+          zip -r tissues-firefox.zip . -x '.git/*' '.github/*' 'generate-icons.py' '.gitignore'
+          cp /tmp/manifest-chrome.json manifest.json
+
+      - name: Read release notes
+        id: release_notes
+        run: |
+          NOTES_FILE=".release/latest/${{ inputs.version }}.md"
+          if [ -f "$NOTES_FILE" ]; then
+            CONTENT=$(cat "$NOTES_FILE")
+            echo "body<<EOF" >> "$GITHUB_OUTPUT"
+            echo "$CONTENT" >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+            echo "has_notes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "body=Release ${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+            echo "has_notes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          body: ${{ steps.release_notes.outputs.body }}
+          files: |
+            tissues-chrome.zip
+            tissues-firefox.zip
