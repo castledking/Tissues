@@ -20,6 +20,8 @@ jobs:
   release:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    outputs:
+      created: ${{ steps.tag_check.outputs.created }}
     steps:
       - uses: actions/checkout@v4
 
@@ -32,8 +34,10 @@ jobs:
         run: |
           if git ls-remote --tags origin "${{ steps.version.outputs.tag }}" 2>/dev/null | grep -q .; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "created=false" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "created=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create tag
@@ -142,3 +146,39 @@ jobs:
           files: |
             tissues-chrome.zip
             tissues-firefox.zip
+
+  publish-amo:
+    needs: release
+    if: github.event_name == 'push' && needs.release.outputs.created == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install web-ext
+        run: npm install -g web-ext
+
+      - name: Create Firefox release zip
+        run: |
+          jq '. + {"browser_specific_settings":{"gecko":{"id":"tissues@castled.codes","strict_min_version":"142.0","data_collection_permissions":{"required":["none"]}},"license":"GPL-3.0-only"}}' \
+            manifest.json > /tmp/manifest-firefox.json
+          cp manifest.json /tmp/manifest-chrome.json
+          cp /tmp/manifest-firefox.json manifest.json
+          zip -r tissues-firefox.zip . -x '.git/*' '.github/*' 'generate-icons.py' '.gitignore'
+          cp /tmp/manifest-chrome.json manifest.json
+
+      - name: Sign and publish to AMO
+        run: |
+          web-ext sign \
+            --source-dir . \
+            --api-key "$AMO_JWT_ISSUER" \
+            --api-secret "$AMO_JWT_SECRET" \
+            --channel listed \
+            --timeout 900000
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
