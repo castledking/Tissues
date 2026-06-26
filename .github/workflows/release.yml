@@ -12,6 +12,11 @@ on:
         description: 'Version to re-release (e.g. v1.0.2)'
         required: true
         type: string
+      publish_amo:
+        description: 'Publish to Firefox Add-ons (AMO)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -147,31 +152,26 @@ jobs:
             tissues-chrome.zip
             tissues-firefox.zip
 
-  publish-amo:
-    needs: release
-    if: github.event_name == 'push' && needs.release.outputs.created == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
+      - name: Setup Node.js for AMO
+        if: inputs.publish_amo
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Install web-ext
+        if: inputs.publish_amo
         run: npm install -g web-ext
 
-      - name: Create Firefox release zip
+      - name: Create Firefox release zip for AMO
+        if: inputs.publish_amo
         run: |
           jq '. + {"browser_specific_settings":{"gecko":{"id":"tissues@castled.codes","strict_min_version":"142.0","data_collection_permissions":{"required":["none"]}},"license":"GPL-3.0-only"}}' \
             manifest.json > /tmp/manifest-firefox.json
           cp manifest.json /tmp/manifest-chrome.json
           cp /tmp/manifest-firefox.json manifest.json
-          zip -r tissues-firefox.zip . -x '.git/*' '.github/*' 'generate-icons.py' '.gitignore'
-          cp /tmp/manifest-chrome.json manifest.json
 
       - name: Sign and publish to AMO
+        if: inputs.publish_amo
         run: |
           web-ext sign \
             --source-dir . \
@@ -182,3 +182,7 @@ jobs:
         env:
           AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
           AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+
+      - name: Restore original manifest
+        if: inputs.publish_amo
+        run: cp /tmp/manifest-chrome.json manifest.json
