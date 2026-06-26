@@ -77,6 +77,16 @@ function processRow(li, states) {
     return;
   }
 
+  // Ensure the metadata container is fully rendered by checking for the parent
+  // This prevents insertion before React has finished building the DOM structure
+  const metaContainer = assigneesDiv.parentElement;
+  if (!metaContainer || metaContainer.children.length < 2) {
+    console.log('[tissues] metadata container not fully rendered yet for issue #' + issueNum);
+    // Set up observer anyway so we can retry when React finishes rendering
+    observeRow(li);
+    return;
+  }
+
   const state = states[issueNum] || 'todo';
 
   const wrapper = document.createElement('div');
@@ -175,17 +185,21 @@ function observeRow(li) {
 
   const rowObserver = new MutationObserver(() => {
     // React re-rendered this row — re-inject if our indicator was wiped
+    // Also retry if we never injected because container wasn't ready
     if (!li.querySelector('.tissues-indicator')) {
-      // Disconnect temporarily to avoid infinite loop from our own injection
-      rowObserver.disconnect();
-      loadStates((states) => processRow(li, states));
-      // Re-observe after injection (container may have been replaced by React)
-      setTimeout(() => {
-        const newMetaContainer = li.querySelector('[data-testid="list-row-assignees"]')?.parentElement;
-        if (newMetaContainer) {
-          rowObserver.observe(newMetaContainer, { childList: true, subtree: true });
-        }
-      }, 50);
+      // Check if container is now fully rendered (has at least 2 children)
+      if (metaContainer.children.length >= 2) {
+        // Disconnect temporarily to avoid infinite loop from our own injection
+        rowObserver.disconnect();
+        loadStates((states) => processRow(li, states));
+        // Re-observe after injection (container may have been replaced by React)
+        setTimeout(() => {
+          const newMetaContainer = li.querySelector('[data-testid="list-row-assignees"]')?.parentElement;
+          if (newMetaContainer) {
+            rowObserver.observe(newMetaContainer, { childList: true, subtree: true });
+          }
+        }, 50);
+      }
     }
   });
 
