@@ -1,0 +1,54 @@
+PRIVACY POLICY FOR TISSUES (CHROME EXTENSION)
+
+Last updated: June 2026
+
+Tissues ("the Extension") is a browser extension that helps users track
+the status of upstream issues on GitHub repositories they have forked.
+
+This Privacy Policy describes how the Extension handles user data.
+
+1. DATA COLLECTION
+
+   The Extension does NOT collect, store, or transmit any personal data,
+   browsing history, or identifiable information to any server.
+
+   The Extension uses chrome.storage.local to save issue tracking state
+   (issue numbers and their status labels: To-Do, In Progress, Done)
+   directly in the user's browser. This data never leaves the device.
+
+2. NETWORK REQUESTS
+
+   The Extension makes a single type of network request: a fetch to
+   https://github.com/{owner}/{repo}/fork to check whether the current
+   user has forked the repository. This is a standard browser request to
+   a GitHub.com page the user is already visiting. No data is sent to
+   any third party.
+
+3. PERMISSIONS USAGE
+
+   - "storage": Used solely to persist issue tracking states locally.
+   - Host permission for https://github.com/*: Used solely to inject
+     the status indicator UI into GitHub issue list pages and to perform
+     the fork check described above.
+
+4. DATA SHARING
+
+   The Extension does not share, sell, rent, or disclose any user data
+   to any third party. No analytics, telemetry, or tracking services are
+   included.
+
+5. THIRD-PARTY SERVICES
+
+   The Extension interacts only with GitHub.com (via the user's own
+   authenticated session in the browser). No other external services are
+   contacted.
+
+6. CHANGES TO THIS POLICY
+
+   Updates will be reflected in this document. Continued use of the
+   Extension after changes constitutes acceptance of the updated policy.
+
+7. CONTACT
+
+   For questions about this Privacy Policy, open an issue at:
+   https://github.com/castledking/Tissues/issues
