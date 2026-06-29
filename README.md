@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://addons.mozilla.org/en-US/firefox/addon/tissues/"><img alt="Download on Firefox Add-ons" src="https://img.shields.io/badge/Download%20on-Firefox%20Add--ons-FF7139?style=for-the-badge&logo=firefoxbrowser&logoColor=white"></a>
-  <a href="https://github.com/castledking/Tissues"><img src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github" alt="GitHub Repository"></a>
+  <a href="https://chromewebstore.google.com/detail/tissues/bmlogcbjapfmoilololendjaleaeckjj"><img alt="Download on Chrome Web Store" src="https://img.shields.io/badge/Download%20on-Chrome%20Web%20Store-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white"></a>
   <a href="https://github.com/castledking/Tissues/issues"><img src="https://img.shields.io/badge/GitHub-Issues-181717?style=for-the-badge&logo=github" alt="GitHub Issues"></a>
 </p>
 
@@ -21,13 +21,6 @@ A browser extension that helps you track the status of issues across repositorie
 - **React-aware** — Uses per-row MutationObservers to maintain indicators across GitHub's React re-renders
 - **Cross-browser** — Available for Chrome/Chromium and Firefox
 
-## Downloads
-
-| Browser | Link |
-|---------|------|
-| Firefox | [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/tissues/) |
-| Chrome / Chromium | [GitHub Releases](https://github.com/castledking/Tissues/releases) (download `tissues-chrome.zip`) |
-
 ## Installation
 
 ### Firefox
@@ -36,11 +29,7 @@ Install from [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/ti
 
 ### Chrome / Chromium
 
-1. Download `tissues-chrome.zip` from the [latest release](https://github.com/castledking/Tissues/releases)
-2. Unzip the file
-3. Go to `chrome://extensions`
-4. Enable "Developer mode" (top right)
-5. Click "Load unpacked" and select the unzipped folder
+Install from [Chrome Web Store](https://chromewebstore.google.com/detail/tissues/bmlogcbjapfmoilololendjaleaeckjj).
 
 ## Usage
 
